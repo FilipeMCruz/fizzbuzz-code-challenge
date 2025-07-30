@@ -1,27 +1,28 @@
-package api
+package handlers
 
 import (
 	"encoding/json"
-	"fizzbuzz-code-challenge/fizzbuzz"
-	"fmt"
+	"fizzbuzz-code-challenge/services"
 	"net/http"
 	"strconv"
 )
 
 const (
-	queryParamInt1        = "int1"
-	queryParamInt2        = "int2"
-	queryParamLimit       = "limit"
-	queryParamStr1        = "str1"
-	queryParamStr2        = "str2"
-	errInvalidParamPrefix = "invalid query param: "
-	errMissingParamPrefix = "missing query param: "
-	errMarshallResponse   = "unable to write response"
+	queryParamInt1  = "int1"
+	queryParamInt2  = "int2"
+	queryParamLimit = "limit"
+	queryParamStr1  = "str1"
+	queryParamStr2  = "str2"
 )
 
 // BuildFizzBuzzHandler returns a handler that validates the request, calls the fizzbuzz function and
 // returns the content in json
 func BuildFizzBuzzHandler() http.Handler {
+	type response struct {
+		Values []string `json:"values"`
+		Total  int      `json:"total"`
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -60,14 +61,14 @@ func BuildFizzBuzzHandler() http.Handler {
 			return
 		}
 
-		result, err := fizzbuzz.FizzBuzz(int1, int2, limit, str1, str2)
+		result, err := services.FizzBuzz(int1, int2, limit, str1, str2)
 		if err != nil {
 			writeError(w, err.Error(), http.StatusBadRequest)
 
 			return
 		}
 
-		b, err := json.Marshal(result)
+		b, err := json.Marshal(response{Values: result, Total: len(result)})
 		if err != nil {
 			writeError(w, errMarshallResponse, http.StatusInternalServerError)
 
@@ -76,10 +77,4 @@ func BuildFizzBuzzHandler() http.Handler {
 
 		_, _ = w.Write(b)
 	})
-}
-
-func writeError(w http.ResponseWriter, error string, code int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	_, _ = fmt.Fprintf(w, `{"error":"%s"}`, error)
 }
