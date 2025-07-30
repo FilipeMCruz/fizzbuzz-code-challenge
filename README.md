@@ -37,6 +37,13 @@ To run the solution in port 8080:
 ./server -port 8080
 ```
 
+### Docker
+
+To run the solution in port 8080:
+
+```shell
+docker compose up -d
+```
 
 ## Architecture
 
