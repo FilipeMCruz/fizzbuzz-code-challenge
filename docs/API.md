@@ -1,7 +1,10 @@
 # API
 
-This sections lists the available endpoints and how to call them.
-All unuseful requests return the following body:
+This document lists the available endpoints and how to call them.
+
+API Versioning is defined directly in the URLs. 
+
+All unsuccessful requests return the following body:
 
 ```json
 {
@@ -11,16 +14,16 @@ All unuseful requests return the following body:
 
 ## FizzBuzz
 
-URL: '/fizzbuzz'
+URL: '/api/v1/fizzbuzz'
 Body: none
 Headers: none
 Query (all required):
 
-- int1 (non-zero value)
-- int2 (non-zero value)
-- limit
-- str1
-- str2
+- int1: int (non-zero value)
+- int2: int (non-zero value)
+- limit: int
+- str1: string
+- str2: string
 
 Successful response:
 
@@ -39,14 +42,14 @@ Body:
 Example:
 
 ```shell
-curl "http://localhost:8080/fizzbuzz?int1=3&int2=5&limit=10&str1=fizz&str2=buzz"
+curl "http://localhost:8080/api/v1/fizzbuzz?int1=3&int2=5&limit=10&str1=fizz&str2=buzz"
 ```
 
 Other Status Codes: 400, 500
 
 ## Stats
 
-URL: '/stats'
+URL: '/api/v1/stats'
 Body: none
 Headers: none
 Query: none
@@ -65,7 +68,7 @@ Body:
 Example:
 
 ```shell
-curl "http://localhost:8080/stats"
+curl "http://localhost:8080/api/v1/stats"
 ```
 
 Other Status Codes: 404, 500

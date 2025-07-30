@@ -1,0 +1,12 @@
+@startuml arch
+
+component main
+component handlers
+component services
+component infrastructure
+
+main ..> handlers
+main ..> infrastructure
+handlers ..> services
+
+@enduml
