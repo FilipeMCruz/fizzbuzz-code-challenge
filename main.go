@@ -5,7 +5,7 @@ import (
 	"fizzbuzz-code-challenge/handlers"
 	"fizzbuzz-code-challenge/infrastructure"
 	"flag"
-	"log"
+	"log/slog"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -18,15 +18,19 @@ func main() {
 	port := flag.Int("port", 8080, "port to listen on")
 	flag.Parse()
 
-	err := start(ctx, stop, *port)
+	running := func() {
+		slog.Info("fizzbuzz server running", "port", *port)
+	}
+
+	err := start(ctx, stop, running, *port)
 	if err != nil {
-		log.Print(err)
+		slog.Error("failed to start service", "error", err)
 	}
 }
 
 // start registers the handlers (wrapped with logging and stats) in a ServeMux
 // and calls infrastructure.Run to run the http Server.
-func start(ctx context.Context, stop func(), port int) error {
+func start(ctx context.Context, stop func(), running func(), port int) error {
 	ch := make(chan string)
 	defer close(ch)
 
@@ -37,5 +41,5 @@ func start(ctx context.Context, stop func(), port int) error {
 	mux.Handle("GET /api/v1/fizzbuzz", warp(handlers.BuildFizzBuzzHandler()))
 	mux.Handle("GET /api/v1/stats", warp(handlers.BuildStatsHandler(ch)))
 
-	return infrastructure.Run(ctx, stop, port, mux)
+	return infrastructure.Run(ctx, stop, running, port, mux)
 }

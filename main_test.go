@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
-	"time"
 )
 
 type req struct {
@@ -85,15 +84,21 @@ func TestRun(t *testing.T) {
 				t.Fatal(err)
 			}
 
+			noti := make(chan struct{})
+
+			running := func() {
+				noti <- struct{}{}
+			}
+
 			go func() {
-				startErr := start(ctx, stop, port)
+				startErr := start(ctx, stop, running, port)
 
 				if !errors.Is(tc.err, startErr) {
 					t.Errorf("got %v, expected %v", startErr, tc.err)
 				}
 			}()
 
-			time.Sleep(time.Second)
+			<-noti
 
 			runTest(t, tc, port)
 		})

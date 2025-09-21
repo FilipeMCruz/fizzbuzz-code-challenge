@@ -31,7 +31,7 @@ func BuildWrapHandlerChain(ch chan<- string) func(http.Handler) http.Handler {
 // Run runs an http server and ensures that it is gracefully shutdown:
 // - in flight requests are answered;
 // - new requests are not accepted.
-func Run(ctx context.Context, stop func(), port int, handler http.Handler) error {
+func Run(ctx context.Context, stop func(), running func(), port int, handler http.Handler) error {
 	ongoingCtx, stopOngoingGracefully := context.WithCancel(context.Background())
 	httpServer := &http.Server{
 		Addr:              fmt.Sprintf(":%d", port),
@@ -44,11 +44,19 @@ func Run(ctx context.Context, stop func(), port int, handler http.Handler) error
 	}
 
 	go func() {
-		slog.Info("fizzbuzz server starting", "port", port)
-		if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+		listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+		if err != nil {
 			slog.Error("Failed to start HTTP server", "error", err)
 			os.Exit(1)
 		}
+
+		running()
+
+		if err := httpServer.Serve(listener); !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("Failed to start HTTP server", "error", err)
+			os.Exit(1)
+		}
+
 		slog.Info("Stopped serving new connections.")
 	}()
 
