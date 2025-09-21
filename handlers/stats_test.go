@@ -1,7 +1,8 @@
-package handlers
+package handlers_test
 
 import (
 	"bytes"
+	"fizzbuzz-code-challenge/handlers"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -54,7 +55,7 @@ func TestBuildStatsHandler(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			h := BuildStatsHandler(ch)
+			h := handlers.BuildStatsHandler(ch)
 
 			for i := range tc.input {
 				ch <- tc.input[i]

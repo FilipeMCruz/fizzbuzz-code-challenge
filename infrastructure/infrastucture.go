@@ -7,16 +7,17 @@ import (
 	"fizzbuzz-code-challenge/infrastructure/recovery"
 	"fizzbuzz-code-challenge/infrastructure/stats"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
 	"net/http"
+	"os"
 	"time"
 )
 
 // BuildWrapHandlerChain creates a function that wraps a handler with:
-// - request counter (for stats)
-// - basic request info logging
-// - basic recovery mechanism
+// - request counter (for stats);
+// - basic request info logging;
+// - basic recovery mechanism.
 func BuildWrapHandlerChain(ch chan<- string) func(http.Handler) http.Handler {
 	handler := stats.BuildWrapStats(ch)
 
@@ -28,13 +29,14 @@ func BuildWrapHandlerChain(ch chan<- string) func(http.Handler) http.Handler {
 }
 
 // Run runs an http server and ensures that it is gracefully shutdown:
-// - in flight requests are answered
-// - new requests are not accepted
+// - in flight requests are answered;
+// - new requests are not accepted.
 func Run(ctx context.Context, stop func(), port int, handler http.Handler) error {
 	ongoingCtx, stopOngoingGracefully := context.WithCancel(context.Background())
 	httpServer := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
-		Handler: handler,
+		Addr:              fmt.Sprintf(":%d", port),
+		ReadHeaderTimeout: time.Second,
+		Handler:           handler,
 
 		BaseContext: func(_ net.Listener) context.Context {
 			return ongoingCtx
@@ -42,11 +44,12 @@ func Run(ctx context.Context, stop func(), port int, handler http.Handler) error
 	}
 
 	go func() {
-		log.Printf("fizzbuzz server starting on port %d", port)
+		slog.Info("fizzbuzz server starting", "port", port)
 		if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("HTTP server error: %v", err)
+			slog.Error("Failed to start HTTP server", "error", err)
+			os.Exit(1)
 		}
-		log.Println("Stopped serving new connections.")
+		slog.Info("Stopped serving new connections.")
 	}()
 
 	<-ctx.Done()

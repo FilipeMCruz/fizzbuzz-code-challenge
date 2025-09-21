@@ -1,7 +1,8 @@
-package handlers
+package handlers_test
 
 import (
 	"bytes"
+	"fizzbuzz-code-challenge/handlers"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -19,10 +20,12 @@ func TestBuildFizzBuzzHandler(t *testing.T) {
 
 	testCases := []testCase{
 		{
-			description:        "basic example: FizzBuzz",
-			url:                "/fizzbuzz?int1=3&int2=5&limit=20&str1=fizz&str2=buzz",
-			method:             "GET",
-			expectedResponse:   []byte(`{"values":["1","2","fizz","4","buzz","fizz","7","8","fizz","buzz","11","fizz","13","14","fizzbuzz","16","17","fizz","19","buzz"],"total":20}`),
+			description: "basic example: FizzBuzz",
+			url:         "/fizzbuzz?int1=3&int2=5&limit=20&str1=fizz&str2=buzz",
+			method:      "GET",
+			expectedResponse: []byte(
+				`{"values":["1","2","fizz","4","buzz","fizz","7","8","fizz","buzz","11","fizz","13","14","fizzbuzz","16","17","fizz","19","buzz"],"total":20}`,
+			),
 			expectedStatusCode: http.StatusOK,
 		},
 		{
@@ -62,7 +65,7 @@ func TestBuildFizzBuzzHandler(t *testing.T) {
 		},
 	}
 
-	h := BuildFizzBuzzHandler()
+	h := handlers.BuildFizzBuzzHandler()
 
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {

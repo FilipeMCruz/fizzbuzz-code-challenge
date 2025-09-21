@@ -20,12 +20,12 @@ func main() {
 
 	err := start(ctx, stop, *port)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 }
 
 // start registers the handlers (wrapped with logging and stats) in a ServeMux
-// and calls infrastructure.Run to run the http Server
+// and calls infrastructure.Run to run the http Server.
 func start(ctx context.Context, stop func(), port int) error {
 	ch := make(chan string)
 	defer close(ch)

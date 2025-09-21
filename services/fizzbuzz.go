@@ -1,4 +1,4 @@
-package services
+package services_test
 
 import (
 	"errors"
@@ -16,7 +16,7 @@ var ErrZeroInt2Value = errors.New("int2 value can't be 0")
 // - str1: string that will replace multiples of int1
 // - str2: string that will replace multiples of int2
 //
-// Challenge doesn't reference any constrains but there's a need to at least check for 0's in int1 and in2
+// Challenge doesn't reference any constrains but there's a need to at least check for 0's in int1 and in2.
 func FizzBuzz(int1, int2, limit int, str1, str2 string) ([]string, error) {
 	if int1 == 0 {
 		return nil, ErrZeroInt1Value
@@ -35,13 +35,9 @@ func FizzBuzz(int1, int2, limit int, str1, str2 string) ([]string, error) {
 	bothInt := int1 * int2
 	bothStr := str1 + str2
 	if int1 > int2 {
-		tmpInt := int2
-		int2 = int1
-		int1 = tmpInt
+		int2, int1 = int1, int2
 
-		tmpStr := str2
-		str2 = str1
-		str1 = tmpStr
+		str2, str1 = str1, str2
 	}
 
 	for curr := 1; curr <= limit; curr++ {

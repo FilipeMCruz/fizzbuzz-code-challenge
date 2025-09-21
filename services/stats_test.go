@@ -1,6 +1,7 @@
-package services
+package services_test
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 )
@@ -47,7 +48,7 @@ func TestStats(t *testing.T) {
 
 			ret, err := s.MostFrequent()
 
-			if !reflect.DeepEqual(tc.err, err) {
+			if !errors.Is(tc.err, err) {
 				t.Errorf("got %v, expected %v", err, tc.err)
 			}
 

@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"fizzbuzz-code-challenge/services"
+	services_test "fizzbuzz-code-challenge/services"
 	"net/http"
 	"strconv"
 )
@@ -16,7 +16,7 @@ const (
 )
 
 // BuildFizzBuzzHandler returns a handler that validates the request, calls the fizzbuzz function and
-// returns the content in json
+// returns the content in json.
 func BuildFizzBuzzHandler() http.Handler {
 	type response struct {
 		Values []string `json:"values"`
@@ -61,7 +61,7 @@ func BuildFizzBuzzHandler() http.Handler {
 			return
 		}
 
-		result, err := services.FizzBuzz(int1, int2, limit, str1, str2)
+		result, err := services_test.FizzBuzz(int1, int2, limit, str1, str2)
 		if err != nil {
 			writeError(w, err.Error(), http.StatusBadRequest)
 

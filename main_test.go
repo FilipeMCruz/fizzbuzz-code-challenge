@@ -2,29 +2,29 @@ package main
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net"
 	"net/http"
-	"reflect"
 	"strconv"
 	"testing"
 	"time"
 )
 
+type req struct {
+	method       string
+	url          string
+	expectedBody string
+	expectedCode int
+}
+
+type testCase struct {
+	description string
+	reqs        []req
+	err         error
+}
+
 func TestRun(t *testing.T) {
-	type req struct {
-		method       string
-		url          string
-		expectedBody string
-		expectedCode int
-	}
-
-	type testCase struct {
-		description string
-		reqs        []req
-		err         error
-	}
-
 	testCases := []testCase{
 		{
 			description: "stats -> fizzbuzz 1 -> stats -> fizzbuzz 2 -> stats -> fizzbuzz 2 -> stats",
@@ -80,53 +80,59 @@ func TestRun(t *testing.T) {
 			ctx, stop := context.WithCancel(context.Background())
 			defer stop()
 
-			port, err := GetFreePort()
+			port, err := getFreePort()
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			go func() {
-				err := start(ctx, stop, port)
+				startErr := start(ctx, stop, port)
 
-				if !reflect.DeepEqual(tc.err, err) {
-					t.Errorf("got %v, expected %v", err, tc.err)
+				if !errors.Is(tc.err, startErr) {
+					t.Errorf("got %v, expected %v", startErr, tc.err)
 				}
 			}()
 
 			time.Sleep(time.Second)
 
-			for _, req := range tc.reqs {
-				r, _ := http.NewRequest(req.method, "http://localhost:"+strconv.Itoa(port)+req.url, nil)
-
-				resp, err := http.DefaultClient.Do(r)
-				if err != nil {
-					t.Fatal(err)
-				}
-
-				if resp.StatusCode != req.expectedCode {
-					t.Errorf("got %d, expected %d", resp.StatusCode, req.expectedCode)
-				}
-
-				body, _ := io.ReadAll(resp.Body)
-				if string(body) != req.expectedBody {
-					t.Errorf("got %s, expected %s", string(body), req.expectedBody)
-				}
-			}
+			runTest(t, tc, port)
 		})
 	}
 }
 
-func GetFreePort() (int, error) {
-	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
-	if err == nil {
-		l, err := net.ListenTCP("tcp", addr)
-		if err == nil {
-			defer func(l *net.TCPListener) {
-				_ = l.Close()
-			}(l)
-			return l.Addr().(*net.TCPAddr).Port, nil
+func runTest(t *testing.T, tc testCase, port int) {
+	for _, req := range tc.reqs {
+		r, _ := http.NewRequest(req.method, "http://localhost:"+strconv.Itoa(port)+req.url, nil)
+
+		resp, reqErr := http.DefaultClient.Do(r)
+		if reqErr != nil {
+			t.Fatal(reqErr)
+		}
+
+		if resp.StatusCode != req.expectedCode {
+			t.Errorf("got %d, expected %d", resp.StatusCode, req.expectedCode)
+		}
+
+		body, _ := io.ReadAll(resp.Body)
+		if string(body) != req.expectedBody {
+			t.Errorf("got %s, expected %s", string(body), req.expectedBody)
 		}
 	}
+}
 
-	return -1, err
+func getFreePort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		return -1, err
+	}
+
+	l, tcpErr := net.ListenTCP("tcp", addr)
+	if tcpErr != nil {
+		return -1, err
+	}
+
+	defer func(l *net.TCPListener) {
+		_ = l.Close()
+	}(l)
+	return l.Addr().(*net.TCPAddr).Port, nil
 }

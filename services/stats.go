@@ -1,4 +1,4 @@
-package services
+package services_test
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ var ErrNoRequestsReceived = errors.New("no requests received")
 // the most frequent one.
 //
 // A mutex is used to ensure that the request info returned is always the most frequent one,
-// in exchange for a slight worst performance
+// in exchange for a slight worst performance.
 type Stats struct {
 	mostFrequent        map[string]int
 	mostFrequentRequest string
@@ -20,7 +20,7 @@ type Stats struct {
 	m sync.Mutex
 }
 
-// NewStats creates a Stats struct that is feed requests info from ch
+// NewStats creates a Stats struct that is feed requests info from ch.
 func NewStats(ch <-chan string) *Stats {
 	s := &Stats{
 		mostFrequent:        make(map[string]int),
@@ -39,7 +39,7 @@ func (s *Stats) run(ch <-chan string) {
 	}
 }
 
-// increment increases the counter for the request received while keeping the most frequent one updated
+// increment increases the counter for the request received while keeping the most frequent one updated.
 func (s *Stats) increment(req string) {
 	s.m.Lock()
 	defer s.m.Unlock()
@@ -53,7 +53,7 @@ func (s *Stats) increment(req string) {
 	}
 }
 
-// MostFrequent returns the most frequent request or an error if no request is found
+// MostFrequent returns the most frequent request or an error if no request is found.
 func (s *Stats) MostFrequent() (string, error) {
 	s.m.Lock()
 	defer s.m.Unlock()

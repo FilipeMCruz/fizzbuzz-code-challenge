@@ -11,8 +11,8 @@ const (
 	errMarshallResponse   = "unable to write response"
 )
 
-func writeError(w http.ResponseWriter, error string, code int) {
+func writeError(w http.ResponseWriter, err string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	_, _ = fmt.Fprintf(w, `{"error":"%s"}`, error)
+	_, _ = fmt.Fprintf(w, `{"error":"%s"}`, err)
 }
