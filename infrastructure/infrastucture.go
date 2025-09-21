@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fizzbuzz-code-challenge/infrastructure/logging"
+	"fizzbuzz-code-challenge/infrastructure/recovery"
 	"fizzbuzz-code-challenge/infrastructure/stats"
 	"fmt"
 	"log"
@@ -15,10 +16,12 @@ import (
 // BuildWrapHandlerChain creates a function that wraps a handler with:
 // - request counter (for stats)
 // - basic request info logging
+// - basic recovery mechanism
 func BuildWrapHandlerChain(ch chan<- string) func(http.Handler) http.Handler {
 	handler := stats.BuildWrapStats(ch)
 
 	return func(next http.Handler) http.Handler {
+		next = recovery.WrapRecovery(next)
 		next = handler(next)
 		return logging.WrapLogging(next)
 	}
@@ -32,7 +35,7 @@ func Run(ctx context.Context, stop func(), port int, handler http.Handler) error
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: handler,
-		
+
 		BaseContext: func(_ net.Listener) context.Context {
 			return ongoingCtx
 		},
