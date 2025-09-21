@@ -3,6 +3,7 @@ package handlers_test
 import (
 	"bytes"
 	"fizzbuzz-code-challenge/handlers"
+	"fizzbuzz-code-challenge/services"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -47,18 +48,16 @@ func TestBuildStatsHandler(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {
-			ch := make(chan string)
-			defer close(ch)
-
 			req, err := http.NewRequest(tc.method, tc.url, nil)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			h := handlers.BuildStatsHandler(ch)
+			s := services.NewStats()
+			h := handlers.BuildStatsHandler(s)
 
 			for i := range tc.input {
-				ch <- tc.input[i]
+				s.Increment(tc.input[i])
 			}
 
 			rr := httptest.NewRecorder()

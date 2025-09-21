@@ -1,4 +1,4 @@
-package services_test
+package services
 
 import (
 	"errors"
@@ -20,27 +20,17 @@ type Stats struct {
 	m sync.Mutex
 }
 
-// NewStats creates a Stats struct that is feed requests info from ch.
-func NewStats(ch <-chan string) *Stats {
-	s := &Stats{
+// NewStats returns a Stats service.
+func NewStats() *Stats {
+	return &Stats{
 		mostFrequent:        make(map[string]int),
 		mostFrequentRequest: "",
 		mostFrequentCount:   0,
 	}
-
-	go s.run(ch)
-
-	return s
 }
 
-func (s *Stats) run(ch <-chan string) {
-	for req := range ch {
-		s.increment(req)
-	}
-}
-
-// increment increases the counter for the request received while keeping the most frequent one updated.
-func (s *Stats) increment(req string) {
+// Increment increases the counter for the request received while keeping the most frequent one updated.
+func (s *Stats) Increment(req string) {
 	s.m.Lock()
 	defer s.m.Unlock()
 

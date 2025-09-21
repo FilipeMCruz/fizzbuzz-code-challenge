@@ -2,6 +2,7 @@ package services_test
 
 import (
 	"errors"
+	"fizzbuzz-code-challenge/services"
 	"reflect"
 	"testing"
 )
@@ -68,7 +69,7 @@ func TestFizzBuzz(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {
-			ret, err := FizzBuzz(tc.int1, tc.int2, tc.limit, tc.str1, tc.str2)
+			ret, err := services.FizzBuzz(tc.int1, tc.int2, tc.limit, tc.str1, tc.str2)
 
 			if !errors.Is(tc.err, err) {
 				t.Errorf("got %v, expected %v", err, tc.err)

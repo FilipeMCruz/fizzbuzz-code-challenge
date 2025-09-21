@@ -2,6 +2,7 @@ package services_test
 
 import (
 	"errors"
+	"fizzbuzz-code-challenge/services"
 	"reflect"
 	"testing"
 )
@@ -17,7 +18,7 @@ func TestStats(t *testing.T) {
 	testCases := []testCase{
 		{
 			description: "no requests",
-			err:         ErrNoRequestsReceived,
+			err:         services.ErrNoRequestsReceived,
 		},
 		{
 			description: "one request",
@@ -41,9 +42,9 @@ func TestStats(t *testing.T) {
 			ch := make(chan string)
 			defer close(ch)
 
-			s := NewStats(ch)
+			s := services.NewStats()
 			for i := range tc.input {
-				ch <- tc.input[i]
+				s.Increment(tc.input[i])
 			}
 
 			ret, err := s.MostFrequent()

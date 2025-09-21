@@ -18,12 +18,12 @@ import (
 // - request counter (for stats);
 // - basic request info logging;
 // - basic recovery mechanism.
-func BuildWrapHandlerChain(ch chan<- string) func(http.Handler) http.Handler {
-	handler := stats.BuildWrapStats(ch)
+func BuildWrapHandlerChain(submit func(string)) func(http.Handler) http.Handler {
+	wrapStats := stats.BuildWrapStats(submit)
 
 	return func(next http.Handler) http.Handler {
 		next = recovery.WrapRecovery(next)
-		next = handler(next)
+		next = wrapStats(next)
 		return logging.WrapLogging(next)
 	}
 }
@@ -34,26 +34,26 @@ func BuildWrapHandlerChain(ch chan<- string) func(http.Handler) http.Handler {
 func Run(ctx context.Context, stop func(), running func(), port int, handler http.Handler) error {
 	ongoingCtx, stopOngoingGracefully := context.WithCancel(context.Background())
 	httpServer := &http.Server{
-		Addr:              fmt.Sprintf(":%d", port),
 		ReadHeaderTimeout: time.Second,
 		Handler:           handler,
-
 		BaseContext: func(_ net.Listener) context.Context {
 			return ongoingCtx
 		},
 	}
 
+	var lc net.ListenConfig
+
+	listener, err := lc.Listen(ctx, "tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		stopOngoingGracefully()
+		return err
+	}
+
+	running()
+
 	go func() {
-		listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-		if err != nil {
-			slog.Error("Failed to start HTTP server", "error", err)
-			os.Exit(1)
-		}
-
-		running()
-
-		if err := httpServer.Serve(listener); !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("Failed to start HTTP server", "error", err)
+		if serveErr := httpServer.Serve(listener); !errors.Is(serveErr, http.ErrServerClosed) {
+			slog.Error("Failed to start HTTP server", "error", serveErr)
 			os.Exit(1)
 		}
 

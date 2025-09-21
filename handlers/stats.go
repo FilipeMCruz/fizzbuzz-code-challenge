@@ -2,17 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
-	services_test "fizzbuzz-code-challenge/services"
+	"fizzbuzz-code-challenge/services"
 	"net/http"
 )
 
 // BuildStatsHandler returns a handler that responds with the most frequent request made to the server, if available.
-func BuildStatsHandler(ch <-chan string) http.Handler {
+func BuildStatsHandler(s *services.Stats) http.Handler {
 	type response struct {
 		MostFrequent string `json:"most_frequent"`
 	}
-
-	s := services_test.NewStats(ch)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
